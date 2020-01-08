@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>three.js smoke shader</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<link type="text/css" rel="stylesheet" href="main.css">
+	</head>
+	<body>
+
+		<div id="container"></div>
+
+		<script id="vertexShader" type="x-shader/x-vertex">
+			/*uniform vec2 u_resolution;
+			uniform vec2 u_mouse;
+			uniform float u_time;
+			varying vec2 vUv;*/
+
+			void main() {
+				//vUv = uv;
+				gl_Position = projectionMatrix *
+							  modelViewMatrix *
+							  vec4(position,1.0);
+			  }
+		</script>
+
+		<script id="fragmentShader" type="x-shader/x-fragment">
+			#ifdef GL_ES
+			precision mediump float;
+			#endif
+
+			uniform vec2 u_resolution;
+			uniform vec2 u_mouse;
+			uniform float u_time;
+
+			mat3 rot(vec3 ang)
+			{
+				mat3 x = mat3(1.0,0.0,0.0,0.0,cos(ang.x),-sin(ang.x),0.0,sin(ang.x),cos(ang.x));
+				mat3 y = mat3(cos(ang.y),0.0,sin(ang.y),0.0,1.0,0.0,-sin(ang.y),0.0,cos(ang.y));
+				mat3 z = mat3(cos(ang.z),-sin(ang.z),0.0,sin(ang.z),cos(ang.z),0.0,0.0,0.0,1.0);
+				return x*y*z;
+			}
+
+			float random (in vec2 _st) {
+				return fract(sin(dot(_st.xy,
+									vec2(12.9898,78.233)))*
+					43758.5453123);
+			}
+
+			// Based on Morgan McGuire @morgan3d
+			// https://www.shadertoy.com/view/4dS3Wd
+			float noise (in vec2 _st) {
+				vec2 i = floor(_st);
+				vec2 f = fract(_st);
+
+				// Four corners in 2D of a tile
+				float a = random(i);
+				float b = random(i + vec2(1.0, 0.0));
+				float c = random(i + vec2(0.0, 1.0));
+				float d = random(i + vec2(1.0, 1.0));
+
+				vec2 u = f * f * (3.0 - 2.0 * f);
+
+				return mix(a, b, u.x) +
+						(c - a)* u.y * (1.0 - u.x) +
+						(d - b) * u.x * u.y;
+			}
+
+			#define NUM_OCTAVES 5
+
+			float fbm ( in vec2 _st) {
+			float v = 0.0;
+			float a = 0.5;
+			vec2 shift = vec2(100.0);
+			// Rotate to reduce axial bias
+			mat2 rot = mat2(cos(0.5), sin(0.5),
+							-sin(0.5), cos(0.50));
+			for (int i = 0; i < NUM_OCTAVES; ++i) {
+				v += a * noise(_st);
+				_st = rot * _st * 2.0 + shift;
+				a *= 0.5;
+			}
+			return v;
+}
+
+			void main() {
+				vec2 st = gl_FragCoord.xy/u_resolution.xy*3.;
+
+				// st += st * abs(sin(u_time*0.1)*3.0);
+				vec3 color = vec3(0.0);
+
+				vec2 q = vec2(0.);
+				q.x = fbm( st + 0.00*u_time);
+				q.y = fbm( st + vec2(1.0));
+
+				vec2 r = vec2(0.);
+				r.x = fbm( st + 1.0*q + vec2(1.7,9.2)+ 0.15*u_time );
+				r.y = fbm( st + 1.0*q + vec2(8.3,2.8)+ 0.126*u_time);
+
+				float f = fbm(st+r);
+				
+				//color = mix(vec3(0.101961,0.619608,0.666667),
+                //vec3(0.666667,0.666667,0.498039),
+                //clamp((f*f)*4.0,0.0,1.0));
+
+				//color = mix(color,
+				//			vec3(0,0,0.164706),
+				//			clamp(length(q),0.0,1.0));
+
+				color = mix(color,
+							vec3(0.666667,1,1),
+							clamp(length(r.x),0.0,1.0));
+							
+				//gl_FragColor = vec4(abs(1.0*sin(u_time)), 1.0*sin(u_time), 1.0*sin(u_time), 1.0);
+				gl_FragColor = vec4(f*color, 1.);
+			}	
+		</script>
+		
+
+		<script type="module">
+
+			import * as THREE from '../build/three.module.js';
+
+			import Stats from './examples/jsm/libs/stats.module.js';
+
+			import { GUI } from './examples/jsm/libs/dat.gui.module.js';
+			import { OrbitControls } from './examples/jsm/controls/OrbitControls.js';
+
+			var container, stats;
+			var camera, scene, renderer, light;
+			var controls, uniforms;
+			var sphere, plane, sprite;
+
+			init();
+			animate();
+
+			function init() {
+
+				container = document.getElementById( 'container' );
+
+				// Uniforms
+				uniforms = {
+					u_time: { type: "f", value: 1.0 },
+					u_resolution: { type: "v2", value: new THREE.Vector2() },
+					u_mouse: { type: "v2", value: new THREE.Vector2() }
+            	};
+
+				// Renderer
+				renderer = new THREE.WebGLRenderer();
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				container.appendChild( renderer.domElement );
+
+				// Scene
+				scene = new THREE.Scene();
+
+				// Camera
+				camera = new THREE.PerspectiveCamera( 55, window.innerWidth / window.innerHeight, 1, 20000 );
+				camera.position.set( 30, 30, 100 );
+
+				// Light
+				light = new THREE.AmbientLight( 0xffffff, 0.8 );
+				scene.add( light );
+
+				// Params
+				var parameters = {
+					radius: 10.0
+				};
+
+				// Geometries
+				var sphereGeometry = new THREE.IcosahedronBufferGeometry( 20, 1 );
+				var count = sphereGeometry.attributes.position.count;
+
+				var colors = [];
+				var color = new THREE.Color();
+
+				for ( var i = 0; i < count; i += 3 ) {
+
+					color.setHex( Math.random() * 0xffffff );
+					colors.push( color.r, color.g, color.b );
+					colors.push( color.r, color.g, color.b );
+					colors.push( color.r, color.g, color.b );
+				}
+
+				sphereGeometry.setAttribute( 'color', new THREE.Float32BufferAttribute( colors, 3 ) );
+
+				var material = new THREE.MeshStandardMaterial( {
+					vertexColors: THREE.VertexColors,
+					roughness: 0.0,
+					flatShading: true,
+					side: THREE.DoubleSide
+				} );
+
+				sphere = new THREE.Mesh( sphereGeometry, material );
+				//scene.add( sphere );
+
+				var planeGeometry = new THREE.PlaneGeometry( 80, 80 );
+
+				var shaderMaterial = new THREE.ShaderMaterial( {
+					uniforms: uniforms,
+					vertexShader: document.getElementById( 'vertexShader' ).textContent,
+					fragmentShader: document.getElementById( 'fragmentShader' ).textContent
+				} );
+
+				// Plane
+				
+				plane = new THREE.Mesh( planeGeometry, shaderMaterial );
+				plane.position.set(sphere.position.x,sphere.position.y, sphere.position.z-30 );
+				plane.material.side = THREE.DoubleSide;
+
+				scene.add( plane );
+				
+				/*
+				//var spriteMesh = new THREE.Mesh( planeGeometry, shaderMaterial );
+				//var spriteMaterial = new THREE.SpriteMaterial( shaderMaterial );
+				sprite = new THREE.Sprite(shaderMaterial);
+				//sprite.position.set(sphere.position.x,sphere.position.y, sphere.position.z-30 );
+				sprite.scale.set(50, 50, 1);
+
+				sprite.material.side = THREE.DoubleSide;
+				
+
+				scene.add( sprite );
+				*/
+				
+
+				function updateSphere() {
+
+					var radius = parameters.radius;
+					var scale = radius * 0.1; // adjust the multiplier to whatever
+					sphere.scale.x = scale;
+					sphere.scale.y = scale;
+					sphere.scale.z = scale;
+				}
+
+				updateSphere();
+
+				// Orbit Controls
+				controls = new OrbitControls( camera, renderer.domElement );
+				controls.maxPolarAngle = Math.PI * 0.495;
+				controls.target.set( 0, 10, 0 );
+				controls.minDistance = 40.0;
+				controls.maxDistance = 200.0;
+				controls.update();
+
+				// Stats
+				stats = new Stats();
+				container.appendChild( stats.dom );
+
+				// GUI
+				var gui = new GUI();
+				var folder = gui.addFolder( 'Sphere' );
+			
+				folder.add( parameters, 'radius', 1, 20, 0.0001 ).onChange( updateSphere );
+				folder.open();
+
+				// Resize window
+				window.addEventListener( 'resize', onWindowResize, false );
+
+				document.onmousemove = function(e){
+              	uniforms.u_mouse.value.x = e.pageX
+              	uniforms.u_mouse.value.y = e.pageY
+            	}
+			}
+
+			function onWindowResize() {
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				uniforms.u_resolution.value.x = renderer.domElement.width;
+				uniforms.u_resolution.value.y = renderer.domElement.height;			
+			}
+
+			function animate() {
+				//plane.quaternion.copy( camera.quaternion );
+
+
+
+				requestAnimationFrame( animate );
+				render();
+				stats.update();
+
+			}
+
+			function render() {
+
+				var time = performance.now() * 0.001;
+
+				sphere.position.y = Math.sin( time ) * 20 + 5;
+				sphere.rotation.x = time * 0.5;
+				sphere.rotation.z = time * 0.51;
+
+				uniforms.u_time.value += 0.01;
+				renderer.render( scene, camera );
+
+			}
+
+		</script>
+	</body>
+</html>
