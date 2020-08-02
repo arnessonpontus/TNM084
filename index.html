@@ -21,6 +21,7 @@
 			attribute vec3 position;
 			attribute vec3 offset;
 			attribute float size;
+			//attribute float lifeTime;
 		
 			varying vec3 vPosition;
 
@@ -214,9 +215,13 @@
 			vec3 grad = vec3(0., 0., 0.);
 
 			void main(){
-				vPosition = offset + position; // * max( abs( sineTime * 2.0 + 1.0 ), 0.5 )
-				gl_PointSize =  5.+sin(time);
+				vPosition = offset+snoise(offset, grad)*(time*0.05) + position; 
+				vPosition = vPosition+0.5*vPosition*snoise(vPosition, grad);
+				vPosition = vPosition+0.25*vPosition*snoise(vPosition, grad);
+				vPosition = vPosition + 0.125*vPosition*grad;
+				gl_PointSize =  2.;
 				gl_Position = projectionMatrix * modelViewMatrix * vec4( vPosition, 1.0 );
+				
 			}
 		</script>
 
@@ -224,6 +229,11 @@
 		<script id="fragmentShader" type="x-shader/x-fragment">
 			precision highp float;
 			varying vec3 vPosition;
+			uniform float time;
+
+			float rand( vec2 co ){
+				return fract( sin( dot( co.xy, vec2(12.9898,78.233) ) ) * 43758.5453 );
+			}
 			
 			void main() {
 				gl_FragColor = vec4(1.,1.,1.,0.5); //color

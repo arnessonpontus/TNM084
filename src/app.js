@@ -10,6 +10,8 @@ var camera, scene, renderer, light;
 var controls, uniforms;
 var points;
 var parameters;
+var instances;
+var geometry;
 
 init();
 animate();
@@ -27,10 +29,11 @@ function init() {
 
   // geometry
   var vector = new THREE.Vector4();
-  var instances = 50000;
+  instances = 50000;
   var positions = [];
   var offsets = [];
   var colors = [];
+  //var lifeTimes = [];
   //var sizes = new Float32Array( instances );
   //sizes = 10;
 
@@ -40,8 +43,10 @@ function init() {
   for (var i = 0; i < instances; i++) {
     // offsets
     offsets.push(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5);
+    //lifeTimes.push(Math.random() * 3);
   }
-  var geometry = new THREE.InstancedBufferGeometry();
+
+  geometry = new THREE.InstancedBufferGeometry();
   geometry.maxInstancedCount = instances; // set so its initalized for dat.GUI, will be set in first draw otherwise
   geometry.setAttribute(
     "position",
@@ -51,6 +56,15 @@ function init() {
     "offset",
     new THREE.InstancedBufferAttribute(new Float32Array(offsets), 3)
   );
+  /*
+  geometry.setAttribute(
+    "lifeTime",
+    new THREE.InstancedBufferAttribute(
+      new Float32Array(new Float32Array(lifeTimes)),
+      1
+    )
+  );
+  */
   //geometry.setAttribute( 'size', new THREE.BufferAttribute( sizes, 1 ) );
 
   // Material
@@ -82,7 +96,7 @@ function init() {
   controls.maxPolarAngle = Math.PI * 0.495;
   controls.target.set(0, 0, 0);
   controls.minDistance = 0.0;
-  controls.maxDistance = 5.0;
+  controls.maxDistance = 10.0;
   controls.update();
 
   // Params
@@ -94,7 +108,7 @@ function init() {
 
   // GUI
   var gui = new GUI({ width: 350 });
-  var folder = gui.addFolder("Sphere");
+  var folder = gui.addFolder("Smoke");
   folder.add(geometry, "maxInstancedCount", 0, instances);
   //folder.add( parameters, 'size', 5, 20, 10 ).onChange( changeSize );
   folder.open();
@@ -116,15 +130,29 @@ function onWindowResize() {
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
 }
+/*
+function updateLifeTime() {
+  var lifeTimes = geometry.attributes.lifeTime.array;
 
+  for (let i = 0; i < instances; i++) {
+    if (lifeTimes[i] > 3) {
+      lifeTimes[i] = 0;
+    }
+    lifeTimes[i]++;
+  }
+}
+*/
 function animate() {
   requestAnimationFrame(animate);
   render();
   stats.update();
 }
+
 function render() {
   var time = performance.now();
-  var object = scene.children[0];
+  var object = scene.children[0]; // Select particle system
+  //geometry.attributes.lifeTime.array.needsUpdate = true;
+  //updateLifeTime();
   object.material.uniforms["time"].value = time * 0.005;
   renderer.render(scene, camera);
 }
