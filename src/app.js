@@ -4,7 +4,9 @@ import Stats from "./utils/stats.module.js";
 
 import { GUI } from "./utils/dat.gui.module.js";
 import { OrbitControls } from "./utils/OrbitControls.js";
+let vertexShader, fragmentShader;
 
+var loader = new THREE.FileLoader();
 var container, stats;
 var camera, scene, renderer, light;
 var controls, uniforms;
@@ -12,9 +14,29 @@ var points;
 var parameters;
 var instances;
 var geometry;
+var num_shaders = 2;
 
-init();
-animate();
+loadShaders();
+
+function loadShaders() {
+  loader.load("./src/shaders/particlesVert.glsl", (data) => {
+    vertexShader = data;
+    runInitIfDone();
+  });
+
+  loader.load("./src/shaders/particlesFrag.glsl", (data) => {
+    fragmentShader = data;
+    runInitIfDone();
+  });
+
+  function runInitIfDone() {
+    --num_shaders;
+    if (num_shaders === 0) {
+      init();
+      animate();
+    }
+  }
+}
 
 function init() {
   container = document.getElementById("container");
@@ -70,12 +92,12 @@ function init() {
   // Material
   var material = new THREE.RawShaderMaterial({
     uniforms: {
-      time: { value: 1.0 }
+      time: { value: 1.0 },
     },
-    vertexShader: document.getElementById("vertexShader").textContent,
-    fragmentShader: document.getElementById("fragmentShader").textContent,
+    vertexShader: vertexShader,
+    fragmentShader: fragmentShader,
     side: THREE.DoubleSide,
-    transparent: true
+    transparent: true,
   });
 
   points = new THREE.Points(geometry, material);
