@@ -46,7 +46,7 @@ function init() {
     1,
     20
   );
-  camera.position.z = 2;
+  camera.position.z = 3;
   scene = new THREE.Scene();
 
   // geometry
@@ -55,7 +55,7 @@ function init() {
   var positions = [];
   var offsets = [];
   var colors = [];
-  //var lifeTimes = [];
+  var lifeTimes = [];
   //var sizes = new Float32Array( instances );
   //sizes = 10;
 
@@ -64,8 +64,20 @@ function init() {
   // instanced attributes
   for (var i = 0; i < instances; i++) {
     // offsets
-    offsets.push(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5);
-    //lifeTimes.push(Math.random() * 3);
+    let radius = 0.4;
+    let x = Math.random() - 0.5;
+    let y = Math.random() - 0.5;
+    let z = Math.random() - 0.5;
+
+    // while (Math.sqrt(x*x+y*y+z*z) > radius) {
+    //   x = Math.random() - 0.5;
+    //   y = Math.random() - 0.5;
+    //   z = Math.random() - 0.5;
+    // }
+
+    offsets.push(x, y, z);
+
+    lifeTimes.push(Math.random() * 100.);
   }
 
   geometry = new THREE.InstancedBufferGeometry();
@@ -78,7 +90,7 @@ function init() {
     "offset",
     new THREE.InstancedBufferAttribute(new Float32Array(offsets), 3)
   );
-  /*
+  
   geometry.setAttribute(
     "lifeTime",
     new THREE.InstancedBufferAttribute(
@@ -86,7 +98,7 @@ function init() {
       1
     )
   );
-  */
+  
   //geometry.setAttribute( 'size', new THREE.BufferAttribute( sizes, 1 ) );
 
   // Material
@@ -175,6 +187,6 @@ function render() {
   var object = scene.children[0]; // Select particle system
   //geometry.attributes.lifeTime.array.needsUpdate = true;
   //updateLifeTime();
-  object.material.uniforms["time"].value = time * 0.005;
+  object.material.uniforms["time"].value = time * 0.00005;
   renderer.render(scene, camera);
 }
