@@ -7,7 +7,6 @@
       }
 
       void main() {
-
-        float dist = sqrt(vPosition.x*vPosition.x+vPosition.y*vPosition.y+vPosition.z*vPosition.z);
-      	gl_FragColor = vec4(1.,1.,1.,0.5)*(0.5-dist);//*(vPosition.y+0.2)*2.; //color
+        float distFromCenter = length(vPosition);
+      	gl_FragColor = vec4(0.,1.,1.,1.)*(0.5-distFromCenter);//*(vPosition.y+0.2)*2.; //color
       }

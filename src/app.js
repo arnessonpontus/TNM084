@@ -4,18 +4,17 @@ import Stats from "./utils/stats.module.js";
 
 import { GUI } from "./utils/dat.gui.module.js";
 import { OrbitControls } from "./utils/OrbitControls.js";
+
 let vertexShader, fragmentShader;
 
 var loader = new THREE.FileLoader();
 var container, stats;
-var camera, scene, renderer, light;
-var controls, uniforms;
+var camera, scene, renderer;
+var controls;
 var points;
-var parameters;
 var instances;
 var geometry;
 var num_shaders = 2;
-
 loadShaders();
 
 function loadShaders() {
@@ -38,6 +37,11 @@ function loadShaders() {
   }
 }
 
+// controls for dat gui
+var guiControls = new function() {
+  this.speed = 5;  
+}
+
 function init() {
   container = document.getElementById("container");
   camera = new THREE.PerspectiveCamera(
@@ -46,38 +50,23 @@ function init() {
     1,
     20
   );
-  camera.position.z = 3;
+  camera.position.z = 2;
   scene = new THREE.Scene();
 
-  // geometry
-  var vector = new THREE.Vector4();
+  // Point geometry
   instances = 50000;
   var positions = [];
   var offsets = [];
-  var colors = [];
-  var lifeTimes = [];
-  //var sizes = new Float32Array( instances );
-  //sizes = 10;
 
   positions.push(0, 0, 0);
 
   // instanced attributes
   for (var i = 0; i < instances; i++) {
     // offsets
-    let radius = 0.4;
     let x = Math.random() - 0.5;
     let y = Math.random() - 0.5;
     let z = Math.random() - 0.5;
-
-    // while (Math.sqrt(x*x+y*y+z*z) > radius) {
-    //   x = Math.random() - 0.5;
-    //   y = Math.random() - 0.5;
-    //   z = Math.random() - 0.5;
-    // }
-
     offsets.push(x, y, z);
-
-    lifeTimes.push(Math.random() * 100.);
   }
 
   geometry = new THREE.InstancedBufferGeometry();
@@ -90,18 +79,8 @@ function init() {
     "offset",
     new THREE.InstancedBufferAttribute(new Float32Array(offsets), 3)
   );
-  
-  geometry.setAttribute(
-    "lifeTime",
-    new THREE.InstancedBufferAttribute(
-      new Float32Array(new Float32Array(lifeTimes)),
-      1
-    )
-  );
-  
-  //geometry.setAttribute( 'size', new THREE.BufferAttribute( sizes, 1 ) );
 
-  // Material
+  // Point material
   var material = new THREE.RawShaderMaterial({
     uniforms: {
       time: { value: 1.0 },
@@ -115,6 +94,35 @@ function init() {
   points = new THREE.Points(geometry, material);
   scene.add(points);
 
+  // Lights
+  var ambLight = new THREE.AmbientLight( 0x404040 ); // soft white light
+  scene.add( ambLight );
+
+  var light = new THREE.PointLight( "#fff", 0.3, 100 );
+  light.position.set( 5, 5, 5 );
+  scene.add( light );
+
+
+  // Plane
+  var planeGeometry = new THREE.PlaneGeometry( 3, 3, 1 );
+  var planeMaterial = new THREE.MeshBasicMaterial( {color: "#80736e", side: THREE.DoubleSide,} );
+  var plane = new THREE.Mesh( planeGeometry, planeMaterial );
+  plane.rotation.x = Math.PI / 2;
+  planeGeometry.translate(0,0,1);
+  scene.add( plane );
+
+  // Sphere
+  var sphereGeometry = new THREE.SphereGeometry( 0.5, 32, 32 );
+  var sphereMaterial = new THREE.MeshPhongMaterial({
+    color: "#fff",
+    opacity: 0.3,
+    transparent: true,
+  });
+  var sphere = new THREE.Mesh( sphereGeometry, sphereMaterial );
+  scene.add( sphere );
+
+
+  //Renderer
   renderer = new THREE.WebGLRenderer();
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(window.innerWidth, window.innerHeight);
@@ -133,18 +141,12 @@ function init() {
   controls.maxDistance = 10.0;
   controls.update();
 
-  // Params
-  /*
-				parameters = {
-					size: 10.0
-				};
-				*/
-
   // GUI
   var gui = new GUI({ width: 350 });
   var folder = gui.addFolder("Smoke");
   folder.add(geometry, "maxInstancedCount", 0, instances);
-  //folder.add( parameters, 'size', 5, 20, 10 ).onChange( changeSize );
+  folder.add(guiControls,"speed", 0, 10);
+ 
   folder.open();
 
   stats = new Stats();
@@ -153,29 +155,12 @@ function init() {
   window.addEventListener("resize", onWindowResize, false);
 }
 
-/*
-			function changeSize() {
-				points.geometry.attributes.size = parameters.size;
-			}
-			*/
-
 function onWindowResize() {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
 }
-/*
-function updateLifeTime() {
-  var lifeTimes = geometry.attributes.lifeTime.array;
 
-  for (let i = 0; i < instances; i++) {
-    if (lifeTimes[i] > 3) {
-      lifeTimes[i] = 0;
-    }
-    lifeTimes[i]++;
-  }
-}
-*/
 function animate() {
   requestAnimationFrame(animate);
   render();
@@ -185,8 +170,6 @@ function animate() {
 function render() {
   var time = performance.now();
   var object = scene.children[0]; // Select particle system
-  //geometry.attributes.lifeTime.array.needsUpdate = true;
-  //updateLifeTime();
-  object.material.uniforms["time"].value = time * 0.00005;
+  object.material.uniforms["time"].value = time * 0.00005*guiControls.speed;
   renderer.render(scene, camera);
 }

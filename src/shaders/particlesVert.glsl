@@ -237,7 +237,7 @@ float snoise(vec3 v)
 
 void main(){
 
-	float curlAmplitude = 0.2;
+	float curlAmplitude = 0.28;
 	float curlFrequency = 0.5;
 
 	vec3 noise = curlAmplitude * curlNoise(vec3(curlFrequency * offset + vec3(0.4, 0.26, 0.66) * time)) + position;
@@ -252,7 +252,7 @@ void main(){
 	// vPosition = vPosition+0.5*vPosition*snoise(vPosition, grad);
 	// vPosition = vPosition+0.25*vPosition*snoise(vPosition, grad);
 	// vPosition = vPosition + 0.125*vPosition*grad;
-	gl_PointSize =  2.;
+	gl_PointSize = 2.;
 	gl_Position = projectionMatrix * modelViewMatrix * vec4( vPosition.x,vPosition.y,vPosition.z, 1.0 );
 
 }
