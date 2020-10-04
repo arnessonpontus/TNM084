@@ -1,6 +1,7 @@
 precision highp float;
 
 uniform float time;
+uniform bool storm;
 uniform mat4 modelViewMatrix;
 uniform mat4 projectionMatrix;
 
@@ -245,8 +246,11 @@ void main(){
 	noise += curlAmplitude/4.0 * curlNoise(vec3(curlFrequency * 5.43 * offset + vec3(0.4, 0.26, 0.66) * time))+ position;
 	
 	// vPosition = offset*(time*0.05) + position*snoise(offset, grad)*time;
-	vPosition =  noise;
-
+	if (storm) {
+		vPosition = noise;
+	} else {
+		vPosition = position + offset;
+	}
 
 	// vPosition = offset+snoise(offset, grad)*(time*0.05) + position; 
 	// vPosition = vPosition+0.5*vPosition*snoise(vPosition, grad);

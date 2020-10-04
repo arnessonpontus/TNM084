@@ -2,10 +2,10 @@ import * as THREE from "../build/three.module.js";
 
 import Stats from "./utils/stats.module.js";
 
-import { GUI } from "./utils/dat.gui.module.js";
+import { GUI, gui } from "./utils/dat.gui.module.js";
 import { OrbitControls } from "./utils/OrbitControls.js";
 
-let vertexShader, fragmentShader;
+let vertexShader, fragmentShader, groundVertexShader, groundFragmentShader;
 
 var loader = new THREE.FileLoader();
 var container, stats;
@@ -13,8 +13,8 @@ var camera, scene, renderer;
 var controls;
 var points;
 var instances;
-var geometry;
-var num_shaders = 2;
+var geometry; // Might remove
+var num_shaders = 4;
 loadShaders();
 
 function loadShaders() {
@@ -28,6 +28,16 @@ function loadShaders() {
     runInitIfDone();
   });
 
+  loader.load("./src/shaders/groundVert.glsl", (data) => {
+    groundVertexShader = data;
+    runInitIfDone();
+  });
+
+  loader.load("./src/shaders/groundFrag.glsl", (data) => {
+    groundFragmentShader = data;
+    runInitIfDone();
+  });
+
   function runInitIfDone() {
     --num_shaders;
     if (num_shaders === 0) {
@@ -38,9 +48,10 @@ function loadShaders() {
 }
 
 // controls for dat gui
-var guiControls = new function() {
-  this.speed = 5;  
-}
+var guiControls = new (function () {
+  this.speed = 5;
+  this.storm = false;
+})();
 
 function init() {
   container = document.getElementById("container");
@@ -84,6 +95,7 @@ function init() {
   var material = new THREE.RawShaderMaterial({
     uniforms: {
       time: { value: 1.0 },
+      storm: { value: guiControls.storm },
     },
     vertexShader: vertexShader,
     fragmentShader: fragmentShader,
@@ -95,32 +107,43 @@ function init() {
   scene.add(points);
 
   // Lights
-  var ambLight = new THREE.AmbientLight( 0x404040 ); // soft white light
-  scene.add( ambLight );
+  var ambLight = new THREE.AmbientLight(0x404040); // soft white light
+  scene.add(ambLight);
 
-  var light = new THREE.PointLight( "#fff", 0.3, 100 );
-  light.position.set( 5, 5, 5 );
-  scene.add( light );
-
+  var light = new THREE.PointLight("#fff", 0.3, 100);
+  light.position.set(5, 5, 5);
+  scene.add(light);
 
   // Plane
-  var planeGeometry = new THREE.PlaneGeometry( 3, 3, 1 );
-  var planeMaterial = new THREE.MeshBasicMaterial( {color: "#80736e", side: THREE.DoubleSide,} );
-  var plane = new THREE.Mesh( planeGeometry, planeMaterial );
+  var planeGeometry = new THREE.PlaneGeometry(3, 3, 1);
+  var planeMaterial = new THREE.MeshBasicMaterial({
+    color: "#80736e",
+    side: THREE.DoubleSide,
+  });
+  var plane = new THREE.Mesh(planeGeometry, planeMaterial);
   plane.rotation.x = Math.PI / 2;
-  planeGeometry.translate(0,0,1);
-  scene.add( plane );
+  planeGeometry.translate(0, 0, 1);
+  scene.add(plane);
 
   // Sphere
-  var sphereGeometry = new THREE.SphereGeometry( 0.5, 32, 32 );
+  var sphereGeometry = new THREE.SphereGeometry(0.5, 32, 32);
   var sphereMaterial = new THREE.MeshPhongMaterial({
     color: "#fff",
-    opacity: 0.3,
+    opacity: 0.4,
     transparent: true,
   });
-  var sphere = new THREE.Mesh( sphereGeometry, sphereMaterial );
-  scene.add( sphere );
+  var sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+  scene.add(sphere);
 
+  // Ground
+  var groundGeometry = new THREE.SphereGeometry(0.49, 32, 32);
+  var groundMaterial = new THREE.RawShaderMaterial({
+    vertexShader: groundVertexShader,
+    fragmentShader: groundFragmentShader,
+    side: THREE.DoubleSide,
+  });
+  var ground = new THREE.Mesh(groundGeometry, groundMaterial);
+  scene.add(ground);
 
   //Renderer
   renderer = new THREE.WebGLRenderer();
@@ -145,8 +168,9 @@ function init() {
   var gui = new GUI({ width: 350 });
   var folder = gui.addFolder("Smoke");
   folder.add(geometry, "maxInstancedCount", 0, instances);
-  folder.add(guiControls,"speed", 0, 10);
- 
+  folder.add(guiControls, "speed", 0, 10);
+  folder.add(guiControls, "storm");
+
   folder.open();
 
   stats = new Stats();
@@ -170,6 +194,7 @@ function animate() {
 function render() {
   var time = performance.now();
   var object = scene.children[0]; // Select particle system
-  object.material.uniforms["time"].value = time * 0.00005*guiControls.speed;
+  object.material.uniforms["storm"].value = guiControls.storm;
+  object.material.uniforms["time"].value = time * 0.00005 * guiControls.speed;
   renderer.render(scene, camera);
 }
