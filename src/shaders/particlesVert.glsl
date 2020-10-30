@@ -250,6 +250,10 @@ void main(){
 		vPosition = noise;
 	} else {
 		vPosition = position + offset;
+		//vPosition.y = 0.9 - (time - 1.7 * floor(time / 1.7));
+		vPosition.y = 0.9 - abs(offset.y)*time;
+		vPosition.x += sin(time*10.*offset.z)*offset.x/20.;
+
 	}
 
 	// vPosition = offset+snoise(offset, grad)*(time*0.05) + position; 

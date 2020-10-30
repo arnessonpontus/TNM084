@@ -7,6 +7,8 @@ float rand( vec2 co ){
 }
 
 void main() {
-  float distFromCenter = length(vPosition);
+    if (length(vPosition) > 0.49) {
+    discard;
+  }
   gl_FragColor = vec4(1.,1.,1.,1.);//*(0.5-distFromCenter);//*(vPosition.y+0.2)*2.; //color
 }
