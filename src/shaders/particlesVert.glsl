@@ -234,8 +234,6 @@ float snoise(vec3 v)
 
     }
 
-//vec3 grad = vec3(0., 0., 0.);
-
 void main(){
 
 	float curlAmplitude = 0.28;
@@ -246,15 +244,14 @@ void main(){
 	noise += curlAmplitude/4.0 * curlNoise(vec3(curlFrequency * 5.43 * offset + vec3(0.4, 0.26, 0.66) * time))+ position;
 	
 	// vPosition = offset*(time*0.05) + position*snoise(offset, grad)*time;
-	if (storm) {
-		vPosition = noise;
-	} else {
-		vPosition = position + offset;
-		//vPosition.y = 0.9 - (time - 1.7 * floor(time / 1.7));
-		vPosition.y = 0.9 - abs(offset.y)*time;
-		vPosition.x += sin(time*10.*offset.z)*offset.x/20.;
+	vPosition = position + offset;
+	//vPosition.y = 0.9 - (time - 1.7 * floor(time / 1.7));
+	vPosition.y = 0.9 - abs(offset.y)*time;
+	vPosition.x += sin(time*10.*offset.z)*offset.x/20.;
 
-	}
+	if (storm) {
+		vPosition += noise;
+	} 
 
 	// vPosition = offset+snoise(offset, grad)*(time*0.05) + position; 
 	// vPosition = vPosition+0.5*vPosition*snoise(vPosition, grad);

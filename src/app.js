@@ -94,7 +94,7 @@ function init() {
   // Point material
   var material = new THREE.RawShaderMaterial({
     uniforms: {
-      time: { value: 1.0 },
+      time: { value: 0.0 },
       storm: { value: guiControls.storm },
     },
     vertexShader: vertexShader,
@@ -192,9 +192,9 @@ function animate() {
 }
 
 function render() {
-  var time = performance.now();
+  //var time = performance.now();
   var object = scene.children[0]; // Select particle system
   object.material.uniforms["storm"].value = guiControls.storm;
-  object.material.uniforms["time"].value = time * 0.00005 * guiControls.speed;
+  object.material.uniforms["time"].value += 0.001 + 0.001 * guiControls.speed;
   renderer.render(scene, camera);
 }
