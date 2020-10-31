@@ -50,7 +50,7 @@ function loadShaders() {
 // controls for dat gui
 var guiControls = new (function () {
   this.speed = 5;
-  this.storm = false;
+  this.storm = 0;
 })();
 
 function init() {
@@ -68,6 +68,7 @@ function init() {
   instances = 50000;
   var positions = [];
   var offsets = [];
+  var lifeTimes = [];
 
   positions.push(0, 0, 0);
 
@@ -78,6 +79,7 @@ function init() {
     let y = Math.random() - 0.5;
     let z = Math.random() - 0.5;
     offsets.push(x, y, z);
+    lifeTimes.push(Math.random());
   }
 
   geometry = new THREE.InstancedBufferGeometry();
@@ -89,6 +91,10 @@ function init() {
   geometry.setAttribute(
     "offset",
     new THREE.InstancedBufferAttribute(new Float32Array(offsets), 3)
+  );
+  geometry.setAttribute(
+    "lifeTime",
+    new THREE.InstancedBufferAttribute(new Float32Array(lifeTimes), 1)
   );
 
   // Point material
@@ -169,7 +175,7 @@ function init() {
   var folder = gui.addFolder("Smoke");
   folder.add(geometry, "maxInstancedCount", 0, instances);
   folder.add(guiControls, "speed", 0, 10);
-  folder.add(guiControls, "storm");
+  folder.add(guiControls, "storm", 0, 1);
 
   folder.open();
 

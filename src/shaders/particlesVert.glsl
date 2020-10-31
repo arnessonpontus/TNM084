@@ -1,7 +1,7 @@
 precision highp float;
 
 uniform float time;
-uniform bool storm;
+uniform float storm;
 uniform mat4 modelViewMatrix;
 uniform mat4 projectionMatrix;
 
@@ -234,6 +234,15 @@ float snoise(vec3 v)
 
     }
 
+// Modulus for float
+float modf(float x, float n) {
+	return x - floor(x * (1.0 / n)) * n;
+}
+
+float rand( vec2 co ){
+  return fract( sin( dot( co.xy, vec2(12.9898,78.233) ) ) * 43758.5453 );
+}
+
 void main(){
 
 	float curlAmplitude = 0.28;
@@ -245,19 +254,15 @@ void main(){
 	
 	// vPosition = offset*(time*0.05) + position*snoise(offset, grad)*time;
 	vPosition = position + offset;
-	//vPosition.y = 0.9 - (time - 1.7 * floor(time / 1.7));
-	vPosition.y = 0.9 - abs(offset.y)*time;
-	vPosition.x += sin(time*10.*offset.z)*offset.x/20.;
+	
+	// Fall depening on lifetime
+	vPosition.y = 0.6 - modf(time+3., rand(vec2(lifeTime, lifeTime))) * lifeTime;
 
-	if (storm) {
-		vPosition += noise;
-	} 
+	// Add stormin x and x direction
+	vPosition.x += noise.x*storm;
+	vPosition.z += noise.z*storm;
 
-	// vPosition = offset+snoise(offset, grad)*(time*0.05) + position; 
-	// vPosition = vPosition+0.5*vPosition*snoise(vPosition, grad);
-	// vPosition = vPosition+0.25*vPosition*snoise(vPosition, grad);
-	// vPosition = vPosition + 0.125*vPosition*grad;
-	gl_PointSize = 2.;
+	gl_PointSize = 2.*lifeTime*1.3;
 	gl_Position = projectionMatrix * modelViewMatrix * vec4( vPosition.x,vPosition.y,vPosition.z, 1.0 );
 
 }

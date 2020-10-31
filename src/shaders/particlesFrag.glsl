@@ -7,8 +7,13 @@ float rand( vec2 co ){
 }
 
 void main() {
-    if (length(vPosition) > 0.49) {
+
+  // Discard nowflakes outside sphere
+  if (length(vPosition) > 0.49) {
     discard;
   }
-  gl_FragColor = vec4(1.,1.,1.,1.);//*(0.5-distFromCenter);//*(vPosition.y+0.2)*2.; //color
+
+  
+  gl_FragColor = vec4(1.,1.,1.,1.);
+  
 }
