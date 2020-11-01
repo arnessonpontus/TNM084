@@ -258,9 +258,11 @@ void main(){
 	// Fall depening on lifetime
 	vPosition.y = 0.6 - modf(time+3., rand(vec2(lifeTime, lifeTime))) * lifeTime;
 
-	// Add stormin x and x direction
+	// Add storm in x, z and some y direction
 	vPosition.x += noise.x*storm;
 	vPosition.z += noise.z*storm;
+	vPosition.y += 0.5*noise.y*storm;
+
 
 	gl_PointSize = 2.*lifeTime*1.3;
 	gl_Position = projectionMatrix * modelViewMatrix * vec4( vPosition.x,vPosition.y,vPosition.z, 1.0 );

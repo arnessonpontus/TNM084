@@ -12,7 +12,7 @@ var container, stats;
 var camera, scene, renderer;
 var controls;
 var points;
-var instances;
+var maxInstances;
 var geometry; // Might remove
 var num_shaders = 4;
 loadShaders();
@@ -51,6 +51,7 @@ function loadShaders() {
 var guiControls = new (function () {
   this.speed = 5;
   this.storm = 0;
+  this.snowAmount = 20000;
 })();
 
 function init() {
@@ -65,7 +66,7 @@ function init() {
   scene = new THREE.Scene();
 
   // Point geometry
-  instances = 50000;
+  maxInstances = 200000;
   var positions = [];
   var offsets = [];
   var lifeTimes = [];
@@ -73,7 +74,7 @@ function init() {
   positions.push(0, 0, 0);
 
   // instanced attributes
-  for (var i = 0; i < instances; i++) {
+  for (var i = 0; i < maxInstances; i++) {
     // offsets
     let x = Math.random() - 0.5;
     let y = Math.random() - 0.5;
@@ -83,7 +84,7 @@ function init() {
   }
 
   geometry = new THREE.InstancedBufferGeometry();
-  geometry.maxInstancedCount = instances; // set so its initalized for dat.GUI, will be set in first draw otherwise
+  geometry.maxInstancedCount = maxInstances; // set so its initalized for dat.GUI, will be set in first draw otherwise
   geometry.setAttribute(
     "position",
     new THREE.Float32BufferAttribute(positions, 3)
@@ -151,6 +152,22 @@ function init() {
   var ground = new THREE.Mesh(groundGeometry, groundMaterial);
   scene.add(ground);
 
+  // Tree trunk
+  const trunkGeometry = new THREE.CylinderGeometry(0.02, 0.02, 0.22, 32);
+  trunkGeometry.translate(0, -0.08, 0);
+  const trunkMaterial = new THREE.MeshBasicMaterial({ color: "#5e483f" });
+  const cylinder = new THREE.Mesh(trunkGeometry, trunkMaterial);
+  scene.add(cylinder);
+
+  // Tree top
+  for (var i = 1; i < 5; ++i) {
+    const geometry = new THREE.ConeGeometry(0.04 * Math.sqrt(i), 0.08, 32);
+    geometry.translate(0, 0.1 + (i - 1) * -0.05, 0);
+    const material = new THREE.MeshBasicMaterial({ color: "#245228" });
+    const cone = new THREE.Mesh(geometry, material);
+    scene.add(cone);
+  }
+
   //Renderer
   renderer = new THREE.WebGLRenderer();
   renderer.setPixelRatio(window.devicePixelRatio);
@@ -173,7 +190,7 @@ function init() {
   // GUI
   var gui = new GUI({ width: 350 });
   var folder = gui.addFolder("Smoke");
-  folder.add(geometry, "maxInstancedCount", 0, instances);
+  folder.add(guiControls, "snowAmount", 0, maxInstances);
   folder.add(guiControls, "speed", 0, 10);
   folder.add(guiControls, "storm", 0, 1);
 
@@ -201,6 +218,7 @@ function render() {
   //var time = performance.now();
   var object = scene.children[0]; // Select particle system
   object.material.uniforms["storm"].value = guiControls.storm;
+  object.geometry.maxInstancedCount = guiControls.snowAmount;
   object.material.uniforms["time"].value += 0.001 + 0.001 * guiControls.speed;
   renderer.render(scene, camera);
 }

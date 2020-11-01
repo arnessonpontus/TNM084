@@ -104,7 +104,7 @@ void main(){
 	// Set snow level
 	if (vPosition.y > -0.15) {
 		vPosition.y = -0.15;
-		vPosition.y += snoise(vPosition)*0.03;
+		vPosition.y += snoise(vPosition)*0.05;
 	}
 
 	gl_Position = projectionMatrix * modelViewMatrix * vec4(vPosition,1);
