@@ -101,8 +101,7 @@ float snoise(vec3 v)
 void main(){
 	vPosition = position;
 	
-
-	// Set snow level
+	// Set snow level on ground
 	if (vPosition.y > -0.15) {
 		vPosition.y = -0.15;
 		vPosition.y += snoise(vPosition)*0.05;

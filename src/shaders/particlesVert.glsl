@@ -207,7 +207,7 @@ float snoise(vec3 v)
       float s2 = snoise( x + vec3( 74.2 , -124.5 , 99.4 ));
       vec3 c = vec3( s , s1 , s2 );
       return c;
-
+	  
     }
     // CURL NOISE
     // from https://github.com/cabbibo/glsl-curl-noise/blob/master/curl.glsl
@@ -234,11 +234,6 @@ float snoise(vec3 v)
 
     }
 
-// Modulus for float
-float modf(float x, float n) {
-	return x - floor(x * (1.0 / n)) * n;
-}
-
 float rand( vec2 co ){
   return fract( sin( dot( co.xy, vec2(12.9898,78.233) ) ) * 43758.5453 );
 }
@@ -252,19 +247,18 @@ void main(){
 	noise += curlAmplitude/2.0 * curlNoise(vec3(curlFrequency * 3.67 * offset + vec3(0.4, 0.26, 0.66) * time))+ position;
 	noise += curlAmplitude/4.0 * curlNoise(vec3(curlFrequency * 5.43 * offset + vec3(0.4, 0.26, 0.66) * time))+ position;
 	
-	// vPosition = offset*(time*0.05) + position*snoise(offset, grad)*time;
 	vPosition = position + offset;
 	
 	// Fall depening on lifetime
-	vPosition.y = 0.6 - modf(time+3., rand(vec2(lifeTime, lifeTime))) * lifeTime;
-
+	vPosition.y = 0.6 - mod(time+3., rand(vec2(lifeTime, lifeTime))) * lifeTime;
+	
 	// Add storm in x, z and some y direction
 	vPosition.x += noise.x*storm;
 	vPosition.z += noise.z*storm;
 	vPosition.y += 0.5*noise.y*storm;
 
-
+	// Add different sizes for snowflakes
 	gl_PointSize = 2.*lifeTime*1.3;
-	gl_Position = projectionMatrix * modelViewMatrix * vec4( vPosition.x,vPosition.y,vPosition.z, 1.0 );
+	gl_Position = projectionMatrix * modelViewMatrix * vec4( vPosition, 1.0 );
 
 }

@@ -5,7 +5,7 @@ import Stats from "./utils/stats.module.js";
 import { GUI, gui } from "./utils/dat.gui.module.js";
 import { OrbitControls } from "./utils/OrbitControls.js";
 
-let vertexShader, fragmentShader, groundVertexShader, groundFragmentShader;
+let snowVertexShader, snowFragmentShader, groundVertexShader, groundFragmentShader, treeTopVertexShader, treeTopFragmentShader;
 
 var loader = new THREE.FileLoader();
 var container, stats;
@@ -14,17 +14,18 @@ var controls;
 var points;
 var maxInstances;
 var geometry; // Might remove
-var num_shaders = 4;
+
+var num_shaders = 6;
 loadShaders();
 
 function loadShaders() {
   loader.load("./src/shaders/particlesVert.glsl", (data) => {
-    vertexShader = data;
+    snowVertexShader = data;
     runInitIfDone();
   });
 
   loader.load("./src/shaders/particlesFrag.glsl", (data) => {
-    fragmentShader = data;
+    snowFragmentShader = data;
     runInitIfDone();
   });
 
@@ -35,6 +36,16 @@ function loadShaders() {
 
   loader.load("./src/shaders/groundFrag.glsl", (data) => {
     groundFragmentShader = data;
+    runInitIfDone();
+  });
+
+  loader.load("./src/shaders/treeTopVert.glsl", (data) => {
+    treeTopVertexShader = data;
+    runInitIfDone();
+  });
+
+  loader.load("./src/shaders/treeTopFrag.glsl", (data) => {
+    treeTopFragmentShader = data;
     runInitIfDone();
   });
 
@@ -51,7 +62,7 @@ function loadShaders() {
 var guiControls = new (function () {
   this.speed = 5;
   this.storm = 0;
-  this.snowAmount = 20000;
+  this.snowAmount = 10000;
 })();
 
 function init() {
@@ -66,7 +77,7 @@ function init() {
   scene = new THREE.Scene();
 
   // Point geometry
-  maxInstances = 200000;
+  maxInstances = 100000;
   var positions = [];
   var offsets = [];
   var lifeTimes = [];
@@ -98,14 +109,14 @@ function init() {
     new THREE.InstancedBufferAttribute(new Float32Array(lifeTimes), 1)
   );
 
-  // Point material
+  // Snow material
   var material = new THREE.RawShaderMaterial({
     uniforms: {
       time: { value: 0.0 },
       storm: { value: guiControls.storm },
     },
-    vertexShader: vertexShader,
-    fragmentShader: fragmentShader,
+    vertexShader: snowVertexShader,
+    fragmentShader: snowFragmentShader,
     side: THREE.DoubleSide,
     transparent: true,
   });
@@ -131,7 +142,7 @@ function init() {
   plane.rotation.x = Math.PI / 2;
   planeGeometry.translate(0, 0, 1);
   scene.add(plane);
-
+  
   // Sphere
   var sphereGeometry = new THREE.SphereGeometry(0.5, 32, 32);
   var sphereMaterial = new THREE.MeshPhongMaterial({
@@ -163,7 +174,11 @@ function init() {
   for (var i = 1; i < 5; ++i) {
     const geometry = new THREE.ConeGeometry(0.04 * Math.sqrt(i), 0.08, 32);
     geometry.translate(0, 0.1 + (i - 1) * -0.05, 0);
-    const material = new THREE.MeshBasicMaterial({ color: "#245228" });
+    var material = new THREE.RawShaderMaterial({
+      vertexShader: treeTopVertexShader,
+      fragmentShader: treeTopFragmentShader,
+      side: THREE.DoubleSide,
+    });
     const cone = new THREE.Mesh(geometry, material);
     scene.add(cone);
   }
@@ -215,7 +230,6 @@ function animate() {
 }
 
 function render() {
-  //var time = performance.now();
   var object = scene.children[0]; // Select particle system
   object.material.uniforms["storm"].value = guiControls.storm;
   object.geometry.maxInstancedCount = guiControls.snowAmount;
