@@ -100,11 +100,18 @@ float snoise(vec3 v)
 
 void main(){
 	vPosition = position;
+	
 
 	// Set snow level
 	if (vPosition.y > -0.15) {
 		vPosition.y = -0.15;
 		vPosition.y += snoise(vPosition)*0.05;
+	}
+
+	// Removes snow outside spere and build up snow att tree trunk
+	if (length(vec2(vPosition.x, vPosition.z)) > 0.48) {
+		vPosition.x = 0.;
+		vPosition.z = 0.;
 	}
 
 	gl_Position = projectionMatrix * modelViewMatrix * vec4(vPosition,1);
