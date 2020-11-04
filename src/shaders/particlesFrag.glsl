@@ -5,7 +5,7 @@ uniform float time;
 void main() {
 
   // Discard nowflakes outside sphere
-  if (length(vPosition) > 0.49) {
+  if (length(vPosition) > 0.47) {
     discard;
   }
 

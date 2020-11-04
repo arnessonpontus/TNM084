@@ -20,6 +20,7 @@ var controls;
 var points;
 var maxInstances;
 var geometry; // Might remove
+var snowReset = false;
 
 var num_shaders = 6;
 loadShaders();
@@ -71,7 +72,13 @@ var guiControls = new (function () {
   this.snowAmount = 10000;
   this.hills = 0.5;
   this.piles = 0.5;
+  this.resetSnowDepth = resetSnowDepth;
+  this.snowIncrease = false;
 })();
+
+function resetSnowDepth() {
+  snowReset = true;
+}
 
 function init() {
   container = document.getElementById("container");
@@ -117,8 +124,25 @@ function init() {
     new THREE.InstancedBufferAttribute(new Float32Array(lifeTimes), 1)
   );
 
-  // Snow material
-  var material = new THREE.RawShaderMaterial({
+  // Ground
+  var groundGeometry = new THREE.SphereGeometry(0.49, 32, 32);
+  var groundMaterial = new THREE.RawShaderMaterial({
+    uniforms: {
+      time: { value: 0.0 },
+      hills: { value: guiControls.hills },
+      piles: { value: guiControls.piles },
+      increaseRate: { value: guiControls.snowAmount },
+      snowIncrease: { value: guiControls.snowIncrease },
+    },
+    vertexShader: groundVertexShader,
+    fragmentShader: groundFragmentShader,
+    side: THREE.DoubleSide,
+  });
+  var ground = new THREE.Mesh(groundGeometry, groundMaterial);
+  scene.add(ground);
+
+  // Falling snow
+  var snowMaterial = new THREE.RawShaderMaterial({
     uniforms: {
       time: { value: 0.0 },
       storm: { value: guiControls.storm },
@@ -129,7 +153,7 @@ function init() {
     transparent: true,
   });
 
-  points = new THREE.Points(geometry, material);
+  points = new THREE.Points(geometry, snowMaterial);
   scene.add(points);
 
   // Lights
@@ -160,21 +184,6 @@ function init() {
   });
   var sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
   scene.add(sphere);
-
-  // Ground
-  var groundGeometry = new THREE.SphereGeometry(0.49, 32, 32);
-  var groundMaterial = new THREE.RawShaderMaterial({
-    uniforms: {
-      time: { value: 0.0 },
-      hills: { value: guiControls.hills },
-      piles: { value: guiControls.piles },
-    },
-    vertexShader: groundVertexShader,
-    fragmentShader: groundFragmentShader,
-    side: THREE.DoubleSide,
-  });
-  var ground = new THREE.Mesh(groundGeometry, groundMaterial);
-  scene.add(ground);
 
   // Tree trunk
   const trunkGeometry = new THREE.CylinderGeometry(0.02, 0.02, 0.22, 32);
@@ -218,11 +227,13 @@ function init() {
   // GUI
   var gui = new GUI({ width: 350 });
   var folder = gui.addFolder("Smoke");
-  folder.add(guiControls, "snowAmount", 0, maxInstances);
-  folder.add(guiControls, "speed", 0, 10);
+  folder.add(guiControls, "snowAmount", 1000, maxInstances);
+  folder.add(guiControls, "speed", 0.1, 10);
   folder.add(guiControls, "storm", 0, 1);
   folder.add(guiControls, "hills", 0, 1.3);
   folder.add(guiControls, "piles", 0, 1.3);
+  folder.add(guiControls, "resetSnowDepth");
+  folder.add(guiControls, "snowIncrease");
 
   folder.open();
 
@@ -245,14 +256,28 @@ function animate() {
 }
 
 function render() {
-  var object = scene.children[0]; // Select particle system
-  var ground = scene.children[5];
-  object.material.uniforms["storm"].value = guiControls.storm;
+  var ground = scene.children[0]; // Select the ground
+  var snowfall = scene.children[1]; // Select particle system
+
+  snowfall.material.uniforms["storm"].value = guiControls.storm;
+  snowfall.geometry.maxInstancedCount = guiControls.snowAmount;
+
   ground.material.uniforms["hills"].value = guiControls.hills;
   ground.material.uniforms["piles"].value = guiControls.piles;
-  object.geometry.maxInstancedCount = guiControls.snowAmount;
+  ground.material.uniforms["snowIncrease"].value = guiControls.snowIncrease;
+
+  // Time updates
   var timeStep = 0.001 + 0.001 * guiControls.speed;
-  object.material.uniforms["time"].value += timeStep;
+  snowfall.material.uniforms["time"].value += timeStep;
   ground.material.uniforms["time"].value += timeStep;
+
+  // For resetting the snow level
+  if (snowReset || guiControls.snowIncrease == false) {
+    ground.material.uniforms["increaseRate"].value = 0;
+    snowReset = false;
+  } else {
+    ground.material.uniforms["increaseRate"].value +=
+      guiControls.snowAmount * guiControls.speed * 0.2;
+  }
   renderer.render(scene, camera);
 }
