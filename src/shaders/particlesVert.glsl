@@ -114,7 +114,7 @@ void main(){
 	vPosition = position + offset;
 	
 	// Snow fall depening on lifetime to relocate snow
-	vPosition.y = 0.6 - mod(time+3., rand(vec2(lifeTime, lifeTime))) * lifeTime;
+	vPosition.y = 0.6 - mod(time + 3., rand(vec2(lifeTime, lifeTime))) * lifeTime;
 
 	float curlAmplitude = 0.2;
 	float curlFrequency = 0.9;
@@ -128,7 +128,7 @@ void main(){
 	vPosition.z += noise.y*storm;
 
 	// Add different sizes for snowflakes
-	gl_PointSize = 2.*lifeTime*1.3;
+	gl_PointSize = 2.5*lifeTime;
 	gl_Position = projectionMatrix * modelViewMatrix * vec4( vPosition, 1.0 );
 
 }

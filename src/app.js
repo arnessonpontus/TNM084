@@ -5,7 +5,12 @@ import Stats from "./utils/stats.module.js";
 import { GUI, gui } from "./utils/dat.gui.module.js";
 import { OrbitControls } from "./utils/OrbitControls.js";
 
-let snowVertexShader, snowFragmentShader, groundVertexShader, groundFragmentShader, treeTopVertexShader, treeTopFragmentShader;
+let snowVertexShader,
+  snowFragmentShader,
+  groundVertexShader,
+  groundFragmentShader,
+  treeTopVertexShader,
+  treeTopFragmentShader;
 
 var loader = new THREE.FileLoader();
 var container, stats;
@@ -70,7 +75,7 @@ function init() {
   camera = new THREE.PerspectiveCamera(
     50,
     window.innerWidth / window.innerHeight,
-    1,
+    0.2,
     20
   );
   camera.position.z = 2;
@@ -128,7 +133,7 @@ function init() {
   var ambLight = new THREE.AmbientLight(0x404040); // soft white light
   scene.add(ambLight);
 
-  var light = new THREE.PointLight("#fff", 0.3, 100);
+  var light = new THREE.PointLight("#fff", 0.2, 100);
   light.position.set(5, 5, 5);
   scene.add(light);
 
@@ -142,7 +147,7 @@ function init() {
   plane.rotation.x = Math.PI / 2;
   planeGeometry.translate(0, 0, 1);
   scene.add(plane);
-  
+
   // Sphere
   var sphereGeometry = new THREE.SphereGeometry(0.5, 32, 32);
   var sphereMaterial = new THREE.MeshPhongMaterial({

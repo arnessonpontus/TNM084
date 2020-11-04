@@ -4,7 +4,7 @@ uniform mat4 modelViewMatrix;
 uniform mat4 projectionMatrix;
 attribute vec3 position;
 
-vec3 vPosition;
+varying vec3 vPosition;
 
 //
 // Description : Array and textureless GLSL 2D/3D/4D simplex 
@@ -117,12 +117,14 @@ void main(){
 	if (vPosition.y > -0.15) {
 		vPosition.y = -0.15;
 		vPosition.y += snoise(vPosition)*0.05;
+		vPosition.y += snoise(vPosition*2.)*0.01;
 	}
 
 	// Removes snow outside spere and build up snow att tree trunk
 	if (length(vec2(vPosition.x, vPosition.z)) > 0.48) {
 		vPosition.x = 0.;
 		vPosition.z = 0.;
+		vPosition.y = -0.5;
 	}
 
 	gl_Position = projectionMatrix * modelViewMatrix * vec4(vPosition,1);
