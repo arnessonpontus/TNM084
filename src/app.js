@@ -70,8 +70,8 @@ var guiControls = new (function () {
   this.speed = 5;
   this.storm = 0;
   this.snowAmount = 10000;
-  this.hills = 0.5;
-  this.piles = 0.5;
+  this.lowFreqGround = 0.5;
+  this.highFreqGround = 0.5;
   this.resetSnowDepth = resetSnowDepth;
   this.snowIncrease = false;
 })();
@@ -129,8 +129,8 @@ function init() {
   var groundMaterial = new THREE.RawShaderMaterial({
     uniforms: {
       time: { value: 0.0 },
-      hills: { value: guiControls.hills },
-      piles: { value: guiControls.piles },
+      lowFreqGround: { value: guiControls.lowFreqGround },
+      highFreqGround: { value: guiControls.highFreqGround },
       increaseRate: { value: guiControls.snowAmount },
       snowIncrease: { value: guiControls.snowIncrease },
     },
@@ -226,12 +226,12 @@ function init() {
 
   // GUI
   var gui = new GUI({ width: 350 });
-  var folder = gui.addFolder("Smoke");
+  var folder = gui.addFolder("Parameters");
   folder.add(guiControls, "snowAmount", 1000, maxInstances);
   folder.add(guiControls, "speed", 0.1, 10);
   folder.add(guiControls, "storm", 0, 1);
-  folder.add(guiControls, "hills", 0, 1.3);
-  folder.add(guiControls, "piles", 0, 1.3);
+  folder.add(guiControls, "lowFreqGround", 0, 2.0);
+  folder.add(guiControls, "highFreqGround", 0, 2.0);
   folder.add(guiControls, "resetSnowDepth");
   folder.add(guiControls, "snowIncrease");
 
@@ -262,8 +262,8 @@ function render() {
   snowfall.material.uniforms["storm"].value = guiControls.storm;
   snowfall.geometry.maxInstancedCount = guiControls.snowAmount;
 
-  ground.material.uniforms["hills"].value = guiControls.hills;
-  ground.material.uniforms["piles"].value = guiControls.piles;
+  ground.material.uniforms["lowFreqGround"].value = guiControls.lowFreqGround;
+  ground.material.uniforms["highFreqGround"].value = guiControls.highFreqGround;
   ground.material.uniforms["snowIncrease"].value = guiControls.snowIncrease;
 
   // Time updates

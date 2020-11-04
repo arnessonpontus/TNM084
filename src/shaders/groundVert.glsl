@@ -2,8 +2,8 @@ precision highp float;
 
 uniform mat4 modelViewMatrix;
 uniform mat4 projectionMatrix;
-uniform float hills;
-uniform float piles;
+uniform float lowFreqGround;
+uniform float highFreqGround;
 uniform float time;
 uniform float increaseRate;
 uniform bool snowIncrease;
@@ -121,14 +121,14 @@ void main(){
 	// Set snow level on ground
 	float increaseAmount;
 	if (snowIncrease) {
-		increaseAmount = time*0.08*increaseRate*0.00000001;
+		increaseAmount = increaseRate*0.000000005;
 	} else {
 		increaseAmount = 0.;
 	}
 	if (vPosition.y > -0.15 + increaseAmount) {
 		vPosition.y = -0.15 + increaseAmount;
-		vPosition.y += snoise(vPosition*1.5)*0.08*hills;
-		vPosition.y += snoise(vPosition*5.*piles)*0.03;
+		vPosition.y += snoise(vPosition*1.5)*0.08*lowFreqGround;
+		vPosition.y += snoise(vPosition*5.*highFreqGround)*0.03;
 	}
 
 	// Removes snow outside spere and relocate it to the radius (snow border)
