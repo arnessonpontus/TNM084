@@ -2,6 +2,9 @@ precision highp float;
 
 uniform mat4 modelViewMatrix;
 uniform mat4 projectionMatrix;
+uniform float hills;
+uniform float piles;
+uniform float time;
 attribute vec3 position;
 
 varying vec3 vPosition;
@@ -116,15 +119,17 @@ void main(){
 	// Set snow level on ground
 	if (vPosition.y > -0.15) {
 		vPosition.y = -0.15;
-		vPosition.y += snoise(vPosition)*0.05;
-		vPosition.y += snoise(vPosition*2.)*0.01;
+		vPosition.y += snoise(vPosition*1.5)*0.08*hills;
+		vPosition.y += snoise(vPosition*5.*piles)*0.03;
 	}
 
 	// Removes snow outside spere and build up snow att tree trunk
-	if (length(vec2(vPosition.x, vPosition.z)) > 0.48) {
-		vPosition.x = 0.;
-		vPosition.z = 0.;
-		vPosition.y = -0.5;
+	float diameter = 0.47;
+	float len = length(vPosition);
+	if (len > diameter) {
+		float diff = len - diameter;
+		float part = (diff) / (len);
+		vPosition = vPosition * (1. - part);
 	}
 
 	gl_Position = projectionMatrix * modelViewMatrix * vec4(vPosition,1);

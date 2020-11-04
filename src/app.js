@@ -3,6 +3,7 @@ import * as THREE from "../build/three.module.js";
 import Stats from "./utils/stats.module.js";
 
 import { GUI, gui } from "./utils/dat.gui.module.js";
+
 import { OrbitControls } from "./utils/OrbitControls.js";
 
 let snowVertexShader,
@@ -68,6 +69,8 @@ var guiControls = new (function () {
   this.speed = 5;
   this.storm = 0;
   this.snowAmount = 10000;
+  this.hills = 0.5;
+  this.piles = 0.5;
 })();
 
 function init() {
@@ -161,6 +164,11 @@ function init() {
   // Ground
   var groundGeometry = new THREE.SphereGeometry(0.49, 32, 32);
   var groundMaterial = new THREE.RawShaderMaterial({
+    uniforms: {
+      time: { value: 0.0 },
+      hills: { value: guiControls.hills },
+      piles: { value: guiControls.piles },
+    },
     vertexShader: groundVertexShader,
     fragmentShader: groundFragmentShader,
     side: THREE.DoubleSide,
@@ -213,6 +221,8 @@ function init() {
   folder.add(guiControls, "snowAmount", 0, maxInstances);
   folder.add(guiControls, "speed", 0, 10);
   folder.add(guiControls, "storm", 0, 1);
+  folder.add(guiControls, "hills", 0, 1.3);
+  folder.add(guiControls, "piles", 0, 1.3);
 
   folder.open();
 
@@ -236,8 +246,13 @@ function animate() {
 
 function render() {
   var object = scene.children[0]; // Select particle system
+  var ground = scene.children[5];
   object.material.uniforms["storm"].value = guiControls.storm;
+  ground.material.uniforms["hills"].value = guiControls.hills;
+  ground.material.uniforms["piles"].value = guiControls.piles;
   object.geometry.maxInstancedCount = guiControls.snowAmount;
-  object.material.uniforms["time"].value += 0.001 + 0.001 * guiControls.speed;
+  var timeStep = 0.001 + 0.001 * guiControls.speed;
+  object.material.uniforms["time"].value += timeStep;
+  ground.material.uniforms["time"].value += timeStep;
   renderer.render(scene, camera);
 }

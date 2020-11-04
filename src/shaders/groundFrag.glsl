@@ -108,9 +108,9 @@ float snoise(vec3 v)
 
 void main() {
 
-  // Add some dirtyness and depth to ground
-  float n = snoise(vPosition)*0.2;
-  n += snoise(vPosition*1.5)*0.1;
+	// Add some dirtyness and depth to ground
+	float n = snoise(vPosition)*0.2;
+	n += snoise(vPosition*1.5)*0.1;
 
-  gl_FragColor = vec4(0.8+n, 0.8+n, 0.8+n, 1.);
+	gl_FragColor = vec4(0.8+n, 0.8+n, 0.8+n, 1.);
 }
