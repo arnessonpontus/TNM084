@@ -1,0 +1,26 @@
+{
+  "name": "TNM084",
+  "version": "1.0.0",
+  "description": "Project for TNM084 - Procedural images",
+  "main": "index.js",
+  "dependencies": {},
+  "devDependencies": {
+    "webpack": "^5.4.0",
+    "webpack-cli": "^4.2.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/arnessonpontus/TNM084.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/arnessonpontus/TNM084/issues"
+  },
+  "homepage": "https://github.com/arnessonpontus/TNM084#readme"
+}
