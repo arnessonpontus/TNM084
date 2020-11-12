@@ -1,4 +1,4 @@
-import * as THREE from "../build/three.module.js";
+import * as THREE from "./utils/three.module.js";
 
 import Stats from "./utils/stats.module.js";
 
@@ -26,32 +26,32 @@ var num_shaders = 6;
 loadShaders();
 
 function loadShaders() {
-  loader.load("../src/shaders/particlesVert.glsl", (data) => {
+  loader.load("./src/shaders/particlesVert.glsl", (data) => {
     snowVertexShader = data;
     runInitIfDone();
   });
 
-  loader.load("../src/shaders/particlesFrag.glsl", (data) => {
+  loader.load("./src/shaders/particlesFrag.glsl", (data) => {
     snowFragmentShader = data;
     runInitIfDone();
   });
 
-  loader.load("../src/shaders/groundVert.glsl", (data) => {
+  loader.load("./src/shaders/groundVert.glsl", (data) => {
     groundVertexShader = data;
     runInitIfDone();
   });
 
-  loader.load("../src/shaders/groundFrag.glsl", (data) => {
+  loader.load("./src/shaders/groundFrag.glsl", (data) => {
     groundFragmentShader = data;
     runInitIfDone();
   });
 
-  loader.load("../src/shaders/treeTopVert.glsl", (data) => {
+  loader.load("./src/shaders/treeTopVert.glsl", (data) => {
     treeTopVertexShader = data;
     runInitIfDone();
   });
 
-  loader.load("../src/shaders/treeTopFrag.glsl", (data) => {
+  loader.load("./src/shaders/treeTopFrag.glsl", (data) => {
     treeTopFragmentShader = data;
     runInitIfDone();
   });
