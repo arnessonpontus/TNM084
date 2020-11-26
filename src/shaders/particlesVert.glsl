@@ -119,6 +119,7 @@ void main(){
 	float curlAmplitude = 0.2;
 	float curlFrequency = 0.9;
 
+  // Create the curl noise at different levels
 	vec2 noise = curlAmplitude * curlNoise(vec2(curlFrequency * vec2(offset.x, offset.z) + vec2(0.4, 0.66) * time)) + vec2(position.x, position.z);
 	noise += curlAmplitude/2.0 * curlNoise(vec2(curlFrequency * 3.5 * vec2(offset.x, offset.z) + vec2(0.4, 0.66) * time))+ vec2(position.x, position.z);
 	noise += curlAmplitude/4.0 * curlNoise(vec2(curlFrequency * 5.0 * vec2(offset.x, offset.z) + vec2(0.4, 0.66) * time))+ vec2(position.x, position.z);

@@ -118,7 +118,7 @@ float snoise(vec3 v)
 void main(){
 	vPosition = position;
 	
-	// Set snow level on ground
+	// Increase snow level depending on how much it snows if snowIncrease is on
 	float increaseAmount;
 	if (snowIncrease) {
 		increaseAmount = increaseRate*0.000000005;
@@ -126,17 +126,23 @@ void main(){
 		increaseAmount = 0.;
 	}
 	if (vPosition.y > -0.15 + increaseAmount) {
+		
+		// Set snow level on ground
 		vPosition.y = -0.15 + increaseAmount;
+
+		// Add noise for the ground
 		vPosition.y += snoise(vPosition*1.5)*0.08*lowFreqGround;
 		vPosition.y += snoise(vPosition*5.*highFreqGround)*0.03;
 	}
 
-	// Removes snow outside spere and relocate it to the radius (snow border)
+	// Removes snow outside spere and relocate it to the radius (border where the snow meets the globe)
 	float radius = 0.47;
 	float len = length(vPosition);
 	if (len > radius) {
 		float diff = len - radius;
-		float frac = diff / len;
+
+		// How much percent of the current distance move the vertex along the vector
+		float frac = diff / len; 
 		vPosition = vPosition * (1. - frac);
 	}
 

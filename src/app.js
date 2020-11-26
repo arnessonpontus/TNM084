@@ -19,7 +19,6 @@ var camera, scene, renderer;
 var controls;
 var points;
 var maxInstances;
-var geometry; // Might remove
 var snowReset = false;
 
 var num_shaders = 6;
@@ -91,7 +90,7 @@ function init() {
   camera.position.z = 2;
   scene = new THREE.Scene();
 
-  // Point geometry
+  // For snow flakes attributes
   maxInstances = 100000;
   var positions = [];
   var offsets = [];
@@ -99,27 +98,28 @@ function init() {
 
   positions.push(0, 0, 0);
 
-  // instanced attributes
   for (var i = 0; i < maxInstances; i++) {
-    // offsets
     let x = Math.random() - 0.5;
     let y = Math.random() - 0.5;
     let z = Math.random() - 0.5;
+
+    // Offsets from origin
     offsets.push(x, y, z);
+
     lifeTimes.push(Math.random());
   }
 
-  geometry = new THREE.InstancedBufferGeometry();
-  geometry.maxInstancedCount = maxInstances; // set so its initalized for dat.GUI, will be set in first draw otherwise
-  geometry.setAttribute(
+  var snowGeometry = new THREE.InstancedBufferGeometry();
+  snowGeometry.maxInstancedCount = maxInstances; // set so its initalized for dat.GUI, will be set in first draw otherwise
+  snowGeometry.setAttribute(
     "position",
     new THREE.Float32BufferAttribute(positions, 3)
   );
-  geometry.setAttribute(
+  snowGeometry.setAttribute(
     "offset",
     new THREE.InstancedBufferAttribute(new Float32Array(offsets), 3)
   );
-  geometry.setAttribute(
+  snowGeometry.setAttribute(
     "lifeTime",
     new THREE.InstancedBufferAttribute(new Float32Array(lifeTimes), 1)
   );
@@ -153,7 +153,7 @@ function init() {
     transparent: true,
   });
 
-  points = new THREE.Points(geometry, snowMaterial);
+  points = new THREE.Points(snowGeometry, snowMaterial);
   scene.add(points);
 
   // Lights
